@@ -103,8 +103,10 @@ function isStepDone(dateKey, stepId) {
   return !!getCompletions(dateKey)[stepId];
 }
 
-// A period ('am' or 'pm') is complete when its two non-negotiable steps are checked.
-// AM: am-wash + am-spf   PM: pm-wash + (pm-serum OR pm-rest — whichever is required tonight)
+// A period ('am' or 'pm') is complete when its non-negotiable steps are checked.
+// AM: am-wash + am-spf
+// PM serum night:  pm-wash + pm-serum
+// PM rest night:   pm-wash only (rest step has no checkbox — washing is all that's needed)
 function isPeriodComplete(dateKey, period) {
   var c = getCompletions(dateKey);
   if (period === 'am') {
@@ -114,7 +116,7 @@ function isPeriodComplete(dateKey, period) {
     if (!c['pm-wash']) return false;
     var serum = isSerumNight(dateKey);
     if (serum) return !!c['pm-serum'];
-    return !!c['pm-rest'];
+    return true; // rest night — washing face is all that's required
   }
   return false;
 }
@@ -173,12 +175,16 @@ function getStreak() {
 
 // Returns completion summary for each of the past 7 days (for week view)
 function getWeekSummary() {
-  var result = [];
-  var today  = new Date();
+  var result  = [];
+  var now     = new Date();
+  var todayKey = getDateKey(now);
+  // Zero today to midnight so future comparison is stable
+  var todayMidnight = new Date(now);
+  todayMidnight.setHours(0, 0, 0, 0);
+
   // Start from the Sunday of this week
-  var sun = new Date(today);
-  sun.setDate(today.getDate() - today.getDay());
-  sun.setHours(0, 0, 0, 0);
+  var sun = new Date(todayMidnight);
+  sun.setDate(todayMidnight.getDate() - todayMidnight.getDay());
 
   for (var i = 0; i < 7; i++) {
     var d   = new Date(sun);
@@ -191,8 +197,8 @@ function getWeekSummary() {
       amDone:     isPeriodComplete(key, 'am'),
       pmDone:     isPeriodComplete(key, 'pm'),
       bothDone:   isDayStreakComplete(key),
-      isToday:    getDateKey(new Date()) === key,
-      isFuture:   d > today
+      isToday:    key === todayKey,
+      isFuture:   d > todayMidnight
     });
   }
   return result;

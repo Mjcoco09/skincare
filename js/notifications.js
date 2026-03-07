@@ -19,7 +19,9 @@ var SKIN_NOTIF_SCHEDULE = [
     id:    'pm',
     hour:  21,
     min:   30,
-    title: isSerumNight(getTodayKey()) ? 'Serum night \ud83c\udf19' : 'Night wash \ud83c\udf19',
+    title: function() {
+      return isSerumNight(getTodayKey()) ? 'Serum night \ud83c\udf19' : 'Night wash \ud83c\udf19';
+    },
     body:  function() {
       return isSerumNight(getTodayKey())
         ? 'Wash face \u2192 TruSkin serum. Couple minutes, then you\'re done.'
