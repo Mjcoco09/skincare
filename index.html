@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0f">
+  <link rel="manifest" href="manifest.json">
+  <title>Skincare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-left">
+      <span class="header-greeting" id="headerGreeting">TODAY</span>
+    </div>
+    <div class="header-right">
+      <span class="header-date-pill" id="headerPill"></span>
+      <span class="theme-btn" id="themeBtn" onclick="toggleTheme()">&#9790;</span>
+    </div>
+  </div>
+  <div class="header-day" id="headerDay"></div>
+</div>
+
+<!-- TODAY VIEW -->
+<div class="view active" id="viewToday"></div>
+
+<!-- WEEK VIEW -->
+<div class="view" id="viewWeek"></div>
+
+<!-- SUPPLIES VIEW -->
+<div class="view" id="viewSupplies"></div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-btn active" onclick="switchView('today')" id="navToday">
+    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <div class="nav-label">Today</div>
+  </div>
+  <div class="nav-btn" onclick="switchView('week')" id="navWeek">
+    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <div class="nav-label">Week</div>
+  </div>
+  <div class="nav-btn" onclick="switchView('supplies')" id="navSupplies">
+    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2a5 5 0 015 5v1h2a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V10a2 2 0 012-2h2V7a5 5 0 015-5z"/><circle cx="12" cy="15" r="2"/></svg>
+    <div class="nav-label">Supplies</div>
+  </div>
+</div>
+
+<!-- SCRIPTS: order matters — data > state > render > notifications > app -->
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
