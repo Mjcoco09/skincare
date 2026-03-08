@@ -42,22 +42,6 @@ var SKIN_NOTIF_SCHEDULE = [
   }
 ];
 
-// ---- Test notification ----
-function sendTestNotification() {
-  if (!notifPermitted()) {
-    alert('Enable notifications first, then tap Test again.');
-    return;
-  }
-  navigator.serviceWorker.ready.then(function(reg) {
-    reg.showNotification('Notifications working! ✓', {
-      body:   'Skincare reminders will show up just like this.',
-      icon:   'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' rx=\'20\' fill=\'%230a0a0f\'/><text x=\'50\' y=\'68\' font-size=\'55\' text-anchor=\'middle\'>\ud83e\uddf4</text></svg>',
-      tag:    'skin-test',
-      silent: false
-    });
-  });
-}
-
 // ---- Permission helpers ----
 function notifPermitted() {
   return 'Notification' in window && Notification.permission === 'granted';
@@ -78,24 +62,8 @@ function requestNotifPermission(callback) {
 // ---- Banner ----
 function renderNotifBanner() {
   if (!('Notification' in window) && !isIOS()) return;
+  if (Notification.permission === 'granted') return;
   if (document.getElementById('notifBanner')) return;
-
-  // Already granted — show a test button so you can confirm it works
-  if (Notification.permission === 'granted') {
-    var banner       = document.createElement('div');
-    banner.id        = 'notifBanner';
-    banner.className = 'notif-banner notif-banner-test';
-    banner.innerHTML =
-      '<div class="notif-banner-body">' +
-        '<div class="notif-banner-text">Notifications on</div>' +
-        '<div class="notif-banner-sub">7 AM &amp; 9:30 PM reminders active</div>' +
-      '</div>' +
-      '<button class="notif-test-btn" onclick="sendTestNotification()">Test</button>' +
-      '<button class="notif-dismiss-btn" onclick="dismissNotifBanner()" aria-label="Dismiss">&times;</button>';
-    var header = document.querySelector('.header');
-    if (header && header.nextSibling) header.parentNode.insertBefore(banner, header.nextSibling);
-    return;
-  }
 
   if (localStorage.getItem('skinNotifDismissed')) return;
   if (localStorage.getItem('skinNotifDismissed')) return;
