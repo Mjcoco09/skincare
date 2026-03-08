@@ -670,6 +670,35 @@ body::before {
   position:     relative;
   z-index:      10;
 }
+.notif-banner-ios {
+  background:   rgba(59,130,246,0.10);
+  border-color: rgba(59,130,246,0.2);
+}
+.notif-banner-warn {
+  background:   rgba(245,158,11,0.10);
+  border-color: rgba(245,158,11,0.2);
+}
+.notif-banner-test {
+  background:   rgba(16,185,129,0.08);
+  border-color: rgba(16,185,129,0.18);
+}
+.notif-test-btn {
+  background:    transparent;
+  border:        1px solid var(--accent);
+  border-radius: 10px;
+  color:         var(--accent);
+  font-weight:   600;
+  font-size:     0.78rem;
+  padding:       7px 14px;
+  cursor:        pointer;
+  font-family:   inherit;
+  white-space:   nowrap;
+  flex-shrink:   0;
+}
+.notif-banner-body {
+  flex: 1;
+  min-width: 0;
+}
 .notif-banner-text {
   font-size:   0.85rem;
   font-weight: 600;
@@ -679,6 +708,7 @@ body::before {
   font-size:  0.75rem;
   color:      var(--text2);
   margin-top: 2px;
+  line-height: 1.4;
 }
 .notif-enable-btn {
   background:    var(--accent);

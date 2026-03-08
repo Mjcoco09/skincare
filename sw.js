@@ -1,4 +1,4 @@
-var CACHE_NAME = 'skincare-v1';
+var CACHE_NAME = 'skincare-v2';
 var ASSETS = [
   './',
   './index.html',
@@ -49,6 +49,21 @@ self.addEventListener('fetch', function(e) {
       if (e.request.destination === 'document') {
         return caches.match('./index.html');
       }
+    })
+  );
+});
+
+// ====== NOTIFICATION CLICK ======
+self.addEventListener('notificationclick', function(e) {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        if (clientList[i].url && 'focus' in clientList[i]) {
+          return clientList[i].focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow('./index.html');
     })
   );
 });

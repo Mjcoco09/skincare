@@ -2,8 +2,20 @@
 // AM nudge at 7:00, PM nudge at 9:30 PM.
 // Gentle, ADHD-friendly language — no guilt, just a cue.
 // Uses localStorage to avoid re-sending the same notification in the same day.
+// iOS note: notifications only work in standalone mode (Add to Home Screen, iOS 16.4+).
+//           Always uses registration.showNotification() — new Notification() is broken on iOS.
 
 var SKIN_NOTIF_KEY = 'skinNotifSent';
+
+// ---- iOS / standalone detection ----
+function isIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function isStandalone() {
+  return window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+}
 
 var SKIN_NOTIF_SCHEDULE = [
   {
@@ -30,6 +42,22 @@ var SKIN_NOTIF_SCHEDULE = [
   }
 ];
 
+// ---- Test notification ----
+function sendTestNotification() {
+  if (!notifPermitted()) {
+    alert('Enable notifications first, then tap Test again.');
+    return;
+  }
+  navigator.serviceWorker.ready.then(function(reg) {
+    reg.showNotification('Notifications working! ✓', {
+      body:   'Skincare reminders will show up just like this.',
+      icon:   'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' rx=\'20\' fill=\'%230a0a0f\'/><text x=\'50\' y=\'68\' font-size=\'55\' text-anchor=\'middle\'>\ud83e\uddf4</text></svg>',
+      tag:    'skin-test',
+      silent: false
+    });
+  });
+}
+
 // ---- Permission helpers ----
 function notifPermitted() {
   return 'Notification' in window && Notification.permission === 'granted';
@@ -49,22 +77,64 @@ function requestNotifPermission(callback) {
 
 // ---- Banner ----
 function renderNotifBanner() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'granted') return;
-  if (Notification.permission === 'denied')  return;
+  if (!('Notification' in window) && !isIOS()) return;
+  if (document.getElementById('notifBanner')) return;
+
+  // Already granted — show a test button so you can confirm it works
+  if (Notification.permission === 'granted') {
+    var banner       = document.createElement('div');
+    banner.id        = 'notifBanner';
+    banner.className = 'notif-banner notif-banner-test';
+    banner.innerHTML =
+      '<div class="notif-banner-body">' +
+        '<div class="notif-banner-text">Notifications on</div>' +
+        '<div class="notif-banner-sub">7 AM &amp; 9:30 PM reminders active</div>' +
+      '</div>' +
+      '<button class="notif-test-btn" onclick="sendTestNotification()">Test</button>' +
+      '<button class="notif-dismiss-btn" onclick="dismissNotifBanner()" aria-label="Dismiss">&times;</button>';
+    var header = document.querySelector('.header');
+    if (header && header.nextSibling) header.parentNode.insertBefore(banner, header.nextSibling);
+    return;
+  }
+
+  if (localStorage.getItem('skinNotifDismissed')) return;
   if (localStorage.getItem('skinNotifDismissed')) return;
   if (document.getElementById('notifBanner')) return;
 
   var banner       = document.createElement('div');
   banner.id        = 'notifBanner';
-  banner.className = 'notif-banner';
-  banner.innerHTML =
-    '<div>' +
-      '<div class="notif-banner-text">\ud83d\udd14 Morning & night reminders</div>' +
-      '<div class="notif-banner-sub">Get a nudge at 7 AM and 9:30 PM \u2014 no spam, just two gentle cues</div>' +
-    '</div>' +
-    '<button class="notif-enable-btn" onclick="requestNotifPermission()">Enable</button>' +
-    '<button class="notif-dismiss-btn" onclick="dismissNotifBanner()" aria-label="Dismiss">&times;</button>';
+
+  // iOS not in standalone — can't request permission from browser tab
+  if (isIOS() && !isStandalone()) {
+    banner.className = 'notif-banner notif-banner-ios';
+    banner.innerHTML =
+      '<div class="notif-banner-body">' +
+        '<div class="notif-banner-text">Add to Home Screen for reminders</div>' +
+        '<div class="notif-banner-sub">Tap the Share button \u2197\ufe0f then \u201cAdd to Home Screen\u201d \u2014 iOS only supports notifications from installed apps</div>' +
+      '</div>' +
+      '<button class="notif-dismiss-btn" onclick="dismissNotifBanner()" aria-label="Dismiss">&times;</button>';
+
+  // Permission was denied — direct to Settings
+  } else if (Notification.permission === 'denied') {
+    banner.className = 'notif-banner notif-banner-warn';
+    banner.innerHTML =
+      '<div class="notif-banner-body">' +
+        '<div class="notif-banner-text">Notifications blocked</div>' +
+        '<div class="notif-banner-sub">Go to Settings \u203a Notifications \u203a your browser to re-enable</div>' +
+      '</div>' +
+      '<button class="notif-dismiss-btn" onclick="dismissNotifBanner()" aria-label="Dismiss">&times;</button>';
+
+  // Default — show enable button
+  } else {
+    banner.className = 'notif-banner';
+    banner.innerHTML =
+      '<div class="notif-banner-body">' +
+        '<div class="notif-banner-text">Morning &amp; night reminders</div>' +
+        '<div class="notif-banner-sub">A nudge at 7 AM and 9:30 PM \u2014 no spam, just two gentle cues</div>' +
+      '</div>' +
+      '<button class="notif-enable-btn" onclick="requestNotifPermission()">Enable</button>' +
+      '<button class="notif-dismiss-btn" onclick="dismissNotifBanner()" aria-label="Dismiss">&times;</button>';
+  }
 
   var header = document.querySelector('.header');
   if (header && header.nextSibling) {
@@ -104,11 +174,14 @@ function sendNotif(schedule) {
   var title = typeof schedule.title === 'function' ? schedule.title() : schedule.title;
   var body  = typeof schedule.body  === 'function' ? schedule.body()  : schedule.body;
 
-  new Notification(title, {
-    body:    body,
-    icon:    'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' rx=\'20\' fill=\'%230a0a0f\'/><text x=\'50\' y=\'68\' font-size=\'55\' text-anchor=\'middle\'>🧴</text></svg>',
-    tag:     'skin-' + schedule.id,
-    silent:  false
+  // Always use service worker registration — new Notification() is broken on iOS
+  navigator.serviceWorker.ready.then(function(reg) {
+    reg.showNotification(title, {
+      body:    body,
+      icon:    'data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' rx=\'20\' fill=\'%230a0a0f\'/><text x=\'50\' y=\'68\' font-size=\'55\' text-anchor=\'middle\'>🧴</text></svg>',
+      tag:     'skin-' + schedule.id,
+      silent:  false
+    });
   });
   markNotifSent(schedule.id);
 }
