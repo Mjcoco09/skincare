@@ -97,6 +97,7 @@ function setStepDone(dateKey, stepId, isDone) {
 function toggleStep(dateKey, stepId) {
   var done = getCompletions(dateKey)[stepId] || false;
   setStepDone(dateKey, stepId, !done);
+  if (typeof syncStateToBackend === 'function') syncStateToBackend();
 }
 
 function isStepDone(dateKey, stepId) {

@@ -67,3 +67,19 @@ self.addEventListener('notificationclick', function(e) {
     })
   );
 });
+
+// ====== PUSH NOTIFICATIONS ======
+self.addEventListener('push', function(e) {
+  var data = {};
+  try { data = e.data.json(); } catch(err) { data = { title: 'Skincare', body: e.data ? e.data.text() : '' }; }
+  e.waitUntil(
+    self.registration.showNotification(data.title || 'Skincare', {
+      body:    data.body    || '',
+      icon:    data.icon    || './icons/icon-192.png',
+      badge:   './icons/icon-192.png',
+      tag:     data.tag     || 'skincare',
+      silent:  false,
+      vibrate: [100, 50, 100]
+    })
+  );
+});

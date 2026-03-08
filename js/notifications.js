@@ -7,6 +7,58 @@
 
 var SKIN_NOTIF_KEY = 'skinNotifSent';
 
+// ====== WEB PUSH ======
+var VAPID_PUBLIC_KEY = 'BCzPDTbThf0_Hfzc5waMtCcAaZ4f3qYR94FD9tAGqTg-WzvYnpndv-2k8UdidwuKglMMajAIAycS4jRB3PwXzCs';
+
+function urlBase64ToUint8Array(base64String) {
+  var padding = '='.repeat((4 - base64String.length % 4) % 4);
+  var base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var raw     = atob(base64);
+  var output  = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
+  return output;
+}
+
+function subscribeToWebPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  navigator.serviceWorker.ready.then(function(reg) {
+    reg.pushManager.getSubscription().then(function(existing) {
+      if (existing) { sendSubscriptionToBackend(existing); return; }
+      reg.pushManager.subscribe({
+        userVisibleOnly:      true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      }).then(function(sub) {
+        sendSubscriptionToBackend(sub);
+      }).catch(function() {});
+    });
+  });
+}
+
+function sendSubscriptionToBackend(subscription) {
+  fetch('https://adhd-push-worker.mjcoco09.workers.dev/subscribe', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ app: 'skincare', subscription: subscription })
+  }).catch(function() {});
+}
+
+function syncStateToBackend() {
+  var key = getTodayKey();
+  fetch('https://adhd-push-worker.mjcoco09.workers.dev/state', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({
+      app: 'skincare',
+      state: {
+        amDone:        isPeriodComplete(key, 'am'),
+        pmDone:        isPeriodComplete(key, 'pm'),
+        isSerumNight:  isSerumNight(key),
+        daysSinceStart: getDaysSinceStart()
+      }
+    })
+  }).catch(function() {});
+}
+
 // ---- iOS / standalone detection ----
 function isIOS() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -18,18 +70,28 @@ function isStandalone() {
 }
 
 var SKIN_NOTIF_SCHEDULE = [
+  // Mon/Wed/Fri wake at 7:30 AM
   {
-    id:    'am',
-    hour:  7,
-    min:   0,
+    id: 'am-mwf', hour: 7, min: 30, days: [1,3,5],
     title: 'Morning skin \u2014 75 seconds',
-    body:  function() {
-      return 'Wash face \u2192 CeraVe SPF. Same as brushing your teeth.';
-    }
+    body:  function() { return 'Wash face \u2192 CeraVe SPF. Same as brushing your teeth.'; }
   },
+  // Tue/Thu wake at 6:30 AM
+  {
+    id: 'am-tuth', hour: 6, min: 30, days: [2,4],
+    title: 'Morning skin \u2014 75 seconds',
+    body:  function() { return 'Wash face \u2192 CeraVe SPF. Same as brushing your teeth.'; }
+  },
+  // Sat/Sun wake at 10:30 AM
+  {
+    id: 'am-we', hour: 10, min: 30, days: [0,6],
+    title: 'Morning skin \u2014 75 seconds',
+    body:  function() { return 'Wash face \u2192 CeraVe SPF. Same as brushing your teeth.'; }
+  },
+  // PM at 10:30 PM every night
   {
     id:    'pm',
-    hour:  21,
+    hour:  22,
     min:   30,
     title: function() {
       return isSerumNight(getTodayKey()) ? 'Serum night \ud83c\udf19' : 'Night wash \ud83c\udf19';
@@ -52,6 +114,8 @@ function requestNotifPermission(callback) {
   Notification.requestPermission().then(function(perm) {
     if (perm === 'granted') {
       dismissNotifBanner();
+      subscribeToWebPush();
+      syncStateToBackend();
       if (callback) callback();
     } else {
       dismissNotifBanner();
@@ -134,7 +198,7 @@ function sendNotif(schedule) {
   if (!notifPermitted())            return;
   if (wasNotifSent(schedule.id))    return;
   // Don't send AM notif if AM already complete
-  if (schedule.id === 'am' && isPeriodComplete(getTodayKey(), 'am')) return;
+  if ((schedule.id === 'am' || schedule.id.indexOf('am-') === 0) && isPeriodComplete(getTodayKey(), 'am')) return;
   // Don't send PM notif if PM already complete
   if (schedule.id === 'pm' && isPeriodComplete(getTodayKey(), 'pm')) return;
 
@@ -160,6 +224,7 @@ function checkNotifSchedule() {
   var m   = now.getMinutes();
 
   SKIN_NOTIF_SCHEDULE.forEach(function(s) {
+    if (s.days && s.days.indexOf(now.getDay()) === -1) return; // not scheduled today
     if (h === s.hour && m >= s.min && m < s.min + 30) {
       sendNotif(s);
     }
@@ -168,6 +233,10 @@ function checkNotifSchedule() {
 
 function initNotifications() {
   renderNotifBanner();
+  if (Notification.permission === 'granted') {
+    subscribeToWebPush();
+    syncStateToBackend();
+  }
   checkNotifSchedule();
 
   // Re-check every 60s while page is visible
