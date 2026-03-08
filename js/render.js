@@ -324,7 +324,7 @@ function renderProgressTimeline() {
   PROGRESS_MILESTONES.forEach(function(m, idx) {
     var isActive  = idx === 0 && currentMonth === 0;
     if (idx === 1) isActive = currentMonth >= 1 && currentMonth < 3;
-    if (idx === 2) isActive = currentMonth >= 2 && currentMonth < 6;
+    if (idx === 2) isActive = currentMonth >= 3 && currentMonth < 6;
     if (idx === 3) isActive = currentMonth >= 6;
 
     var isPast = !isActive && (

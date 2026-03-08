@@ -66,7 +66,6 @@ function renderNotifBanner() {
   if (document.getElementById('notifBanner')) return;
 
   if (localStorage.getItem('skinNotifDismissed')) return;
-  if (localStorage.getItem('skinNotifDismissed')) return;
   if (document.getElementById('notifBanner')) return;
 
   var banner       = document.createElement('div');
