@@ -204,12 +204,6 @@ function getWeekSummary() {
   return result;
 }
 
-// ====== LAZY MODE ======
-// Session-level flag — resets on page reload. Lets you do just the 2-step minimum.
-var _lazyMode = false;
-function isLazyMode()      { return _lazyMode; }
-function toggleLazyMode()  { _lazyMode = !_lazyMode; }
-
 // ====== SUPPLIES (running low flags) ======
 function getSuppliesState() {
   return JSON.parse(localStorage.getItem('skinSupplies') || '{}');

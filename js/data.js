@@ -13,13 +13,6 @@ var AM_STEPS = [
     tip:    'Do this right when you start brushing your teeth'
   },
   {
-    id:     'am-dry',
-    label:  'Pat dry',
-    detail: 'Clean towel — pat, don\'t rub',
-    time:   '15s',
-    tip:    null
-  },
-  {
     id:     'am-spf',
     label:  'CeraVe AM SPF',
     detail: 'Pea-sized amount, blend into face and neck',
@@ -37,13 +30,6 @@ var PM_STEPS_BASE = [
     detail: 'Warm water, 30 sec — remove the day\'s grime and SPF',
     time:   '30s',
     tip:    'Do this while you\'re brushing your teeth at night'
-  },
-  {
-    id:     'pm-dry',
-    label:  'Pat dry',
-    detail: 'Let skin be slightly damp — helps serum absorb',
-    time:   '15s',
-    tip:    null
   }
 ];
 

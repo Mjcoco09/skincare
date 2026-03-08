@@ -33,9 +33,7 @@ function renderSerumBadge(dateKey) {
 }
 
 // ====== SINGLE STEP ======
-function renderStep(step, dateKey, isLazy, lazyIds) {
-  // In lazy mode, skip steps not in the minimal set
-  if (isLazy && lazyIds && lazyIds.indexOf(step.id) === -1) return '';
+function renderStep(step, dateKey) {
   if (step.isRest) {
     // Rest night placeholder — no checkbox, just info
     return '<div class="step rest-step">' +
@@ -62,13 +60,9 @@ function renderStep(step, dateKey, isLazy, lazyIds) {
 function renderRoutineCard(period, dateKey) {
   var isAM     = period === 'am';
   var steps    = isAM ? AM_STEPS : getPMSteps(dateKey);
-  var lazy     = isLazyMode();
-  // Lazy-mode minimal steps: just non-negotiable wash + product
-  var lazyIds  = isAM ? ['am-wash', 'am-spf'] : ['pm-wash', 'pm-serum', 'pm-rest'];
 
   var doneCt   = countPeriodDone(dateKey, period);
   var totalCt  = steps.filter(function(s) { return !s.isRest; }).length;
-  if (lazy) totalCt = (isAM ? 2 : steps.filter(function(s) { return !s.isRest && lazyIds.indexOf(s.id) !== -1; }).length);
 
   var complete  = isPeriodComplete(dateKey, period);
   var pct       = totalCt > 0 ? Math.min(Math.round((doneCt / totalCt) * 100), 100) : 0;
@@ -105,7 +99,7 @@ function renderRoutineCard(period, dateKey) {
   // Steps list
   html += '<div class="steps-list">';
   steps.forEach(function(s) {
-    html += renderStep(s, dateKey, lazy, lazyIds);
+    html += renderStep(s, dateKey);
   });
   html += '</div>';
 
@@ -117,6 +111,9 @@ function renderRoutineCard(period, dateKey) {
   html += '</div>'; // .routine-card
   return html;
 }
+
+// ====== LAZY MODE TOGGLE BUTTON ======
+// Removed — steps are lean enough without it.
 
 // ====== TOMORROW PREVIEW ======
 function renderTomorrowPreview() {
@@ -149,17 +146,8 @@ function renderTomorrowPreview() {
   return html;
 }
 
-// ====== LAZY MODE TOGGLE BUTTON ======
-function renderLazyToggle() {
-  var lazy = isLazyMode();
-  return '<button class="lazy-btn' + (lazy ? ' active' : '') + '" onclick="handleLazyToggle()">' +
-    (lazy
-      ? '\u26a1 Lazy mode: on \u2014 tap to show all steps'
-      : '\ud83d\ude34 Low energy day? Tap for lazy mode') +
-  '</button>';
-}
-
 // ====== TODAY VIEW ======
+
 function renderTodayView() {
   var key      = getTodayKey();
   var dayIdx   = getToday();
@@ -178,7 +166,6 @@ function renderTodayView() {
 
   html += renderRoutineCard('am', key);
   html += renderRoutineCard('pm', key);
-  html += renderLazyToggle();
   html += renderTomorrowPreview();
 
   document.getElementById('viewToday').innerHTML = html;
@@ -380,29 +367,6 @@ function handleStepTap(dateKey, stepId) {
   // Update supplies low count in header pill if on supplies view
   if (document.getElementById('viewSupplies').classList.contains('active')) {
     document.getElementById('headerPill').textContent = countLowSupplies() > 0 ? countLowSupplies() + ' low' : 'All good';
-  }
-}
-
-function handleLazyToggle() {
-  toggleLazyMode();
-  var key = getTodayKey();
-  var amCard = document.querySelector('.routine-card.am');
-  var pmCard = document.querySelector('.routine-card.pm');
-  if (amCard) {
-    var r = document.createElement('div');
-    r.innerHTML = renderRoutineCard('am', key);
-    amCard.parentNode.replaceChild(r.firstChild, amCard);
-  }
-  if (pmCard) {
-    var r2 = document.createElement('div');
-    r2.innerHTML = renderRoutineCard('pm', key);
-    pmCard.parentNode.replaceChild(r2.firstChild, pmCard);
-  }
-  var lazyBtn = document.querySelector('.lazy-btn');
-  if (lazyBtn) {
-    var r3 = document.createElement('div');
-    r3.innerHTML = renderLazyToggle();
-    lazyBtn.parentNode.replaceChild(r3.firstChild, lazyBtn);
   }
 }
 

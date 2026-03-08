@@ -387,29 +387,6 @@ body::before {
   line-height: 1.4;
 }
 
-/* ===== LAZY MODE BUTTON ===== */
-.lazy-btn {
-  width:         100%;
-  background:    var(--surface);
-  border:        1px solid var(--border);
-  border-radius: 12px;
-  color:         var(--text2);
-  font-size:     0.8rem;
-  font-weight:   500;
-  padding:       12px;
-  cursor:        pointer;
-  text-align:    center;
-  font-family:   inherit;
-  transition:    background 0.15s, border-color 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.lazy-btn.active {
-  background:   var(--accent-soft);
-  border-color: var(--accent-glow);
-  color:        var(--accent);
-}
-.lazy-btn:active { background: var(--surface-hover); }
-
 /* ===== WEEK VIEW ===== */
 .week-view-inner { padding: 4px 0; }
 
