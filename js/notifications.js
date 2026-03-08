@@ -237,15 +237,4 @@ function initNotifications() {
     subscribeToWebPush();
     syncStateToBackend();
   }
-  checkNotifSchedule();
-
-  // Re-check every 60s while page is visible
-  setInterval(function() {
-    if (!document.hidden) checkNotifSchedule();
-  }, 60000);
-
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) checkNotifSchedule();
-  });
-  window.addEventListener('focus', checkNotifSchedule);
 }
