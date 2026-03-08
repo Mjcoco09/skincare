@@ -1,4 +1,4 @@
-var CACHE_NAME = 'skincare-v2';
+var CACHE_NAME = 'skincare-v3';
 var ASSETS = [
   './',
   './index.html',
