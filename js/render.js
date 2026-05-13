@@ -295,6 +295,7 @@ function renderRetinolPhaseCard() {
       '</div>' +
     '</div>' +
     '<div class="phase-note">' + phaseNote + '</div>' +
+    '<button class="reset-schedule-btn" onclick="handleResetSchedule()">Reset schedule to today</button>' +
   '</div>';
 }
 

@@ -546,6 +546,22 @@ body::before {
   color:       var(--text2);
   line-height: 1.45;
 }
+.reset-schedule-btn {
+  margin-top:    12px;
+  width:         100%;
+  padding:       8px 12px;
+  background:    transparent;
+  border:        1px solid var(--card-border);
+  border-radius: 8px;
+  color:         var(--text2);
+  font-size:     0.75rem;
+  font-family:   inherit;
+  cursor:        pointer;
+  text-align:    center;
+}
+.reset-schedule-btn:active {
+  background: var(--card-border);
+}
 
 /* Product card */
 .product-card {

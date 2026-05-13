@@ -1,3 +1,9 @@
+function handleResetSchedule() {
+  if (!confirm('Reset your serum schedule to start from today (Week 1)? This won\'t affect your completion history.')) return;
+  resetStartDate();
+  renderCurrentView();
+}
+
 // ====== CURRENT VIEW ======
 var currentView = 'today';
 

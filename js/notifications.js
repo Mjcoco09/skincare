@@ -236,5 +236,8 @@ function initNotifications() {
   if (Notification.permission === 'granted') {
     subscribeToWebPush();
     syncStateToBackend();
+    // Check schedule immediately, then every 60 seconds while app is open
+    checkNotifSchedule();
+    setInterval(checkNotifSchedule, 60000);
   }
 }
